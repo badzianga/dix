@@ -7,6 +7,10 @@
 typedef enum OpCode {
     OP_NOP = 0,
     OP_BIPUSH,
+    OP_IADD,
+    OP_ISUB,
+    OP_IMUL,
+    OP_IDIV,
     OP_PRINT,
     OP_RETURN,
 } OpCode;

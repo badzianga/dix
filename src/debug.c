@@ -24,9 +24,13 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
 
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {
-        case OP_NOP: return simple_instruction("nop", offset);
+        case OP_NOP:    return simple_instruction("nop", offset);
         case OP_BIPUSH: return push_instruction("bipush", chunk, offset);
-        case OP_PRINT: return simple_instruction("print", offset);
+        case OP_IADD:   return simple_instruction("iadd", offset);
+        case OP_ISUB:   return simple_instruction("isub", offset);
+        case OP_IMUL:   return simple_instruction("imul", offset);
+        case OP_IDIV:   return simple_instruction("idiv", offset);
+        case OP_PRINT:  return simple_instruction("print", offset);
         case OP_RETURN: return simple_instruction("return", offset);
         default: {
             printf("debug::disassemble_instruction: unknown opcode: %d\n", instruction);

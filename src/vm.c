@@ -1,9 +1,11 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "chunk.h"
 #include "vm.h"
 
 #define READ_BYTE() (*vm.ip++)
+#define BINARY_OP(op) do { Value b = pop(); Value a = pop(); push(a op b); } while (false)
 
 typedef int Value;
 
@@ -38,6 +40,18 @@ void interpret(Chunk* chunk) {
             } break;
             case OP_BIPUSH: {
                 push((int8_t)READ_BYTE());
+            } break;
+            case OP_IADD: {
+                BINARY_OP(+);
+            } break;
+            case OP_ISUB: {
+                BINARY_OP(-);
+            } break;
+            case OP_IMUL: {
+                BINARY_OP(*);
+            } break;
+            case OP_IDIV: {
+                BINARY_OP(/);
             } break;
             case OP_PRINT: {
                 printf("%d\n", pop());
