@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "chunk.h"
+#include "debug.h"
 #include "vm.h"
 
 int main(int argc, char** argv) {
@@ -15,6 +16,8 @@ int main(int argc, char** argv) {
     write_chunk(&chunk, 10, 1);
     write_chunk(&chunk, OP_PRINT, 1);
     write_chunk(&chunk, OP_RETURN, 1);
+
+    disassemble_chunk(&chunk);
 
     interpret(&chunk);
 
