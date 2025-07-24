@@ -56,3 +56,21 @@ typedef enum {
 
     TOKEN_ERROR,           // ERROR
 } TokenType;
+
+typedef struct Token {
+    TokenType type;
+    const char* start;
+    int length;
+    int line;
+} Token;
+
+typedef struct TokenArray {
+    Token* tokens;
+    int count;
+    int capacity;
+} TokenArray;
+
+TokenArray lex(const char* source);
+void free_tokens(TokenArray* token_array);
+void print_tokens(TokenArray* token_array);
+char* token_as_cstr(TokenType token_type);
