@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "chunk.h"
 #include "vm.h"
 
 int main(int argc, char** argv) {
@@ -8,10 +9,16 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    uint8_t program[] = { OP_BIPUSH, 100, OP_PRINT, OP_RETURN };
-    int program_size = sizeof(program) / sizeof(uint8_t);
+    Chunk chunk = { 0 };
 
-    interpret(program, program_size);
+    write_chunk(&chunk, OP_BIPUSH, 1);
+    write_chunk(&chunk, 10, 1);
+    write_chunk(&chunk, OP_PRINT, 1);
+    write_chunk(&chunk, OP_RETURN, 1);
+
+    interpret(&chunk);
+
+    free_chunk(&chunk);
 
     return 0;
 }

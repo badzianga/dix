@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "chunk.h"
 
 #define VM_STACK_CAPACITY 256
 
@@ -10,4 +11,4 @@ typedef enum OpCode {
     OP_RETURN,
 } OpCode;
 
-void interpret(const uint8_t* program, int program_size);
+void interpret(Chunk* chunk);

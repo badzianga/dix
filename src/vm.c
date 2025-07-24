@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "chunk.h"
 #include "vm.h"
 
 #define READ_BYTE() (*vm.ip++)
@@ -7,8 +8,7 @@
 typedef int Value;
 
 typedef struct VM {
-    const uint8_t* program;
-    int program_size;
+    Chunk* chunk;
     const uint8_t* ip;
 
     Value stack[VM_STACK_CAPACITY];
@@ -25,10 +25,9 @@ static Value pop() {
     return *--vm.stack_top;
 }
 
-void interpret(const uint8_t* program, int program_size) {
-    vm.program = program;
-    vm.program_size = program_size;
-    vm.ip = program;
+void interpret(Chunk* chunk) {
+    vm.chunk = chunk;
+    vm.ip = chunk->code;
     vm.stack_top = vm.stack;
 
     for (;;) {
