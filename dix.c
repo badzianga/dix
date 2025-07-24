@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "io.h"
-#include "lexer.h"
+#include "vm.h"
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -9,14 +8,10 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    char* source = read_file(argv[1]);
-    printf("%s\n", source);
+    uint8_t program[] = { OP_BIPUSH, 100, OP_PRINT, OP_RETURN };
+    int program_size = sizeof(program) / sizeof(uint8_t);
 
-    TokenArray tokens = lex(source);
-    print_tokens(&tokens);
-
-    free_tokens(&tokens);
-    free(source);
+    interpret(program, program_size);
 
     return 0;
 }
