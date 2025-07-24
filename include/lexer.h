@@ -38,13 +38,16 @@ typedef enum {
     TOKEN_STRING_LITERAL,  // ""
 
     TOKEN_AND,             // and
+    TOKEN_BOOL,            // bool
     TOKEN_CLASS,           // class
     TOKEN_CONST,           // const
     TOKEN_ELSE,            // else
     TOKEN_FALSE,           // false
+    TOKEN_FLOAT,           // float
     TOKEN_FOR,             // for
     TOKEN_FUNC,            // func
     TOKEN_IF,              // if
+    TOKEN_INT,             // int
     TOKEN_NULLL,           // null
     TOKEN_OR,              // or
     TOKEN_PRINT,           // print

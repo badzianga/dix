@@ -174,9 +174,9 @@ const char* token_as_cstr(TokenType type) {
 
         "IDENTIFIER", "INT", "FLOAT", "STRING",
 
-        "and", "class", "const", "else",
-        "false", "for", "func", "if",
-        "null", "or", "print", "return",
+        "and", "bool", "class", "const", "else",
+        "false", "float", "for", "func", "if",
+        "int", "null", "or", "print", "return",
         "this", "true", "var", "while",
 
         "ERROR",
