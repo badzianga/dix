@@ -49,7 +49,7 @@ typedef enum {
     TOKEN_FUNC,            // func
     TOKEN_IF,              // if
     TOKEN_INT,             // int
-    TOKEN_NULLL,           // null
+    TOKEN_NULL,           // null
     TOKEN_OR,              // or
     TOKEN_PRINT,           // print
     TOKEN_RETURN,          // return
