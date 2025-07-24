@@ -90,7 +90,7 @@ static Token next_token() {
         case ',': return make_token(TOKEN_COMMA);
         case '.': return make_token(TOKEN_DOT);
         case ';': return make_token(TOKEN_SEMICOLON);
-        case ':': return make_token(TOKEN_COLON);
+        case ':': return match('=') ? make_token(TOKEN_COLON_EQUAL) : make_token(TOKEN_COLON);
         case '=': return match('=') ? make_token(TOKEN_EQUAL_EQUAL) : make_token(TOKEN_EQUAL);
         case '!': return match('=') ? make_token(TOKEN_BANG_EQUAL) : make_token(TOKEN_BANG);
         case '>': return match('=') ? make_token(TOKEN_GREATER_EQUAL) : make_token(TOKEN_GREATER);
@@ -164,9 +164,9 @@ const char* token_as_cstr(TokenType type) {
         "EOF",
 
         "(", ")", "{", "}", "[", "]",
-        ",", ".", ";", ":",
+        ",", ".", ";",
 
-        "=", "==", "!", "!=",
+        ":", ":=", "=", "==", "!", "!=",
         ">", ">=", "<", "<=",
 
         "+", "+=", "-", "-=",

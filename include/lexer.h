@@ -12,8 +12,9 @@ typedef enum {
     TOKEN_COMMA,           // ,
     TOKEN_DOT,             // .
     TOKEN_SEMICOLON,       // ;
-    TOKEN_COLON,           // :
 
+    TOKEN_COLON,           // :
+    TOKEN_COLON_EQUAL,     // :=
     TOKEN_EQUAL,           // =
     TOKEN_EQUAL_EQUAL,     // ==
     TOKEN_BANG,            // !
