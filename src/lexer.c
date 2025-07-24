@@ -26,6 +26,13 @@ static char advance() {
     return *lexer.current++;
 }
 
+static bool match(char expected) {
+    if (is_at_end()) return false;
+    if (*lexer.current != expected) return false;
+    ++lexer.current;
+    return true;
+}
+
 static Token make_token(TokenType type) {
     return (Token){
         .type = type,
@@ -76,10 +83,22 @@ static Token next_token() {
     switch (c) {
         case '(': return make_token(TOKEN_LEFT_PAREN);
         case ')': return make_token(TOKEN_RIGHT_PAREN);
-        case '+': return make_token(TOKEN_PLUS);
-        case '-': return make_token(TOKEN_MINUS);
-        case '*': return make_token(TOKEN_ASTERISK);
-        case '/': return make_token(TOKEN_SLASH);
+        case '{': return make_token(TOKEN_LEFT_BRACE);
+        case '}': return make_token(TOKEN_RIGHT_BRACE);
+        case '[': return make_token(TOKEN_LEFT_BRACKET);
+        case ']': return make_token(TOKEN_RIGHT_BRACKET);
+        case ',': return make_token(TOKEN_COMMA);
+        case '.': return make_token(TOKEN_DOT);
+        case ';': return make_token(TOKEN_SEMICOLON);
+        case ':': return make_token(TOKEN_COLON);
+        case '=': return match('=') ? make_token(TOKEN_EQUAL_EQUAL) : make_token(TOKEN_EQUAL);
+        case '!': return match('=') ? make_token(TOKEN_BANG_EQUAL) : make_token(TOKEN_BANG);
+        case '>': return match('=') ? make_token(TOKEN_GREATER_EQUAL) : make_token(TOKEN_GREATER);
+        case '<': return match('=') ? make_token(TOKEN_LESS_EQUAL) : make_token(TOKEN_LESS);
+        case '+': return match('=') ? make_token(TOKEN_PLUS_EQUAL) : make_token(TOKEN_PLUS);
+        case '-': return match('=') ? make_token(TOKEN_MINUS_EQUAL) : make_token(TOKEN_MINUS);
+        case '*': return match('=') ? make_token(TOKEN_ASTERISK_EQUAL) : make_token(TOKEN_ASTERISK);
+        case '/': return match('=') ? make_token(TOKEN_SLASH_EQUAL) : make_token(TOKEN_SLASH);
         default: break;
     }
 
