@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +71,80 @@ static void skip_whitespace() {
     }
 }
 
+static Token read_number() {
+    while (isdigit(peek())) advance();
+    
+    if (peek() == '.') {
+        advance();
+
+        while (isdigit(peek())) advance();
+
+        return make_token(TOKEN_FLOAT_LITERAL);
+    }
+    
+    return make_token(TOKEN_INT_LITERAL);
+}
+
+static Token read_string() {
+    while (peek() != '"' && !is_at_end()) {
+        if (peek() == '\n') ++lexer.line;
+        advance();
+    }
+
+    if (is_at_end()) return make_error_token("unterminated string");
+
+    advance();
+    return make_token(TOKEN_STRING_LITERAL);
+}
+
+static Token read_keyword_or_identifier() {
+    while (isalnum(peek()) || peek() == '_') {
+        advance();
+    }
+
+    static const char* keywords[] = {
+        "and",
+        "bool",
+        "class",
+        "const",
+        "else",
+        "false",
+        "float",
+        "for",
+        "func",
+        "if",
+        "int",
+        "null",
+        "or",
+        "print",
+        "return",
+        "this",
+        "true",
+        "var",
+        "while",
+    };
+    const int keywords_amount = sizeof(keywords) / sizeof(keywords[0]);
+
+    for (int i = 0; i < keywords_amount; ++i) {
+        int length = (int)(lexer.current - lexer.start);
+        int keyword_length = strlen(keywords[i]);
+
+        if (length != keyword_length) continue;
+
+        bool might_be_keyword = true;
+        for (int j = 0; j < length; ++j) {
+            if (*(lexer.start + j) != keywords[i][j]) {
+                might_be_keyword = false;
+                break;
+            }
+        }
+        if (might_be_keyword) {
+            return make_token(TOKEN_AND + i);
+        }
+    }
+    return make_token(TOKEN_IDENTIFIER);
+}
+
 static Token next_token() {
     skip_whitespace();
     lexer.start = lexer.current;
@@ -99,7 +174,15 @@ static Token next_token() {
         case '-': return match('=') ? make_token(TOKEN_MINUS_EQUAL) : make_token(TOKEN_MINUS);
         case '*': return match('=') ? make_token(TOKEN_ASTERISK_EQUAL) : make_token(TOKEN_ASTERISK);
         case '/': return match('=') ? make_token(TOKEN_SLASH_EQUAL) : make_token(TOKEN_SLASH);
+        case '"': return read_string();
         default: break;
+    }
+
+    if (isdigit(c)) {
+        return read_number();
+    }
+    else if (isalpha(c) || c == '_') {
+        return read_keyword_or_identifier();
     }
 
     return make_error_token("unexpected character");
@@ -140,7 +223,7 @@ void print_tokens(TokenArray* token_array) {
     for (const Token* token = token_array->tokens; token != end; ++token) {
         TokenType type = token->type;
 
-        if (type == TOKEN_ERROR) {
+        if ((type >= TOKEN_IDENTIFIER && type <= TOKEN_STRING_LITERAL) || type == TOKEN_ERROR) {
             printf(
                 "Line: %d,\ttoken: %s,\tvalue: %.*s\n",
                 token->line,
@@ -172,7 +255,7 @@ const char* token_as_cstr(TokenType type) {
         "+", "+=", "-", "-=",
         "*", "*=", "/", "/=",
 
-        "IDENTIFIER", "INT", "FLOAT", "STRING",
+        "IDENTIFIER", "INT_LITERAL", "FLOAT_LITERAL", "STRING_LITERAL",
 
         "and", "bool", "class", "const", "else",
         "false", "float", "for", "func", "if",
