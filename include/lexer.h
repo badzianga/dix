@@ -73,4 +73,4 @@ typedef struct TokenArray {
 TokenArray lex(const char* source);
 void free_tokens(TokenArray* token_array);
 void print_tokens(TokenArray* token_array);
-char* token_as_cstr(TokenType token_type);
+const char* token_as_cstr(TokenType type);
