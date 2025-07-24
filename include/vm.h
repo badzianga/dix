@@ -11,6 +11,7 @@ typedef enum OpCode {
     OP_ISUB,
     OP_IMUL,
     OP_IDIV,
+    OP_INEG,
     OP_PRINT,
     OP_RETURN,
 } OpCode;

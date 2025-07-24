@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
 
     write_chunk(&chunk, OP_BIPUSH, 1);
     write_chunk(&chunk, 10, 1);
+    write_chunk(&chunk, OP_INEG, 1);
     write_chunk(&chunk, OP_BIPUSH, 1);
     write_chunk(&chunk, 20, 1);
     write_chunk(&chunk, OP_IADD, 1);

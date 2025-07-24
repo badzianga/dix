@@ -53,6 +53,9 @@ void interpret(Chunk* chunk) {
             case OP_IDIV: {
                 BINARY_OP(/);
             } break;
+            case OP_INEG: {
+                push(-pop());
+            } break;
             case OP_PRINT: {
                 printf("%d\n", pop());
             } break;
