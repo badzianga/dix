@@ -1,0 +1,5 @@
+var a: int = 10;
+var b: float = 10.2;
+var c: bool = true;
+
+const d := "hello"
