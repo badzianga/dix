@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Iinclude -Wall -Wextra -DDEBUG
+CFLAGS := -Iinclude -Wall -Wextra -ggdb -DDEBUG
 INC_DIR := include
 SRC_DIR := src
 OBJ_DIR := obj
