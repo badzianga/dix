@@ -1,7 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include "chunk.h"
+#include "compiler.h"
+#ifdef DEBUG
+#include "debug.h"
+#endif
+#include "lexer.h"
 #include "vm.h"
 
 #define READ_BYTE() (*vm.ip++)
@@ -27,11 +31,7 @@ static Value pop() {
     return *--vm.stack_top;
 }
 
-void interpret(Chunk* chunk) {
-    vm.chunk = chunk;
-    vm.ip = chunk->code;
-    vm.stack_top = vm.stack;
-
+static InterpretResult run() {
     for (;;) {
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {
@@ -60,12 +60,31 @@ void interpret(Chunk* chunk) {
                 printf("%d\n", pop());
             } break;
             case OP_RETURN: {
-                return;
+                return RESULT_OK;
             } break;
             default: {
                 fprintf(stderr, "vm::interpret: unknown instruction %d\n", instruction);
-                exit(1);
+                return RESULT_RUNTIME_ERROR;
             }
         }
     }
+}
+
+InterpretResult interpret(const char* source) {
+    TokenArray tokens = lex(source);
+    Chunk chunk = { 0 };
+
+    if (!compile(&tokens, &chunk)) {
+        return RESULT_COMPILE_ERROR;
+    }
+
+#ifdef DEBUG
+    disassemble_chunk(&chunk);
+#endif
+
+    vm.chunk = &chunk;
+    vm.ip = chunk.code;
+    vm.stack_top = vm.stack;
+
+    return run();
 }

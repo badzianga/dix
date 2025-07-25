@@ -16,4 +16,10 @@ typedef enum OpCode {
     OP_RETURN,
 } OpCode;
 
-void interpret(Chunk* chunk);
+typedef enum InterpretResult {
+    RESULT_OK,
+    RESULT_COMPILE_ERROR,
+    RESULT_RUNTIME_ERROR,
+} InterpretResult;
+
+InterpretResult interpret(const char* source);
