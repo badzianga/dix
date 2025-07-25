@@ -7,6 +7,8 @@ typedef struct Parser {
     TokenArray* tokens;
     Token* current;
     Chunk* current_chunk;
+    bool had_error;
+    bool panic_mode;
 } Parser;
 
 typedef enum {
@@ -31,7 +33,10 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-static Parser parser;
+static Parser parser = { 0 };
+
+static void error_at(Token* token, const char* message);
+static void error(const char* message);
 
 static Token* current() {
     return parser.current;
@@ -42,10 +47,18 @@ static Token* previous() {
 }
 
 static void advance() {
-    ++parser.current;
+    for (;;) {
+        ++parser.current;
+
+        if (current()->type != TOKEN_ERROR) break;
+        error_at(current(), current()->start);
+    }
 }
 
-static void errorAt(Token* token, const char* message) {
+static void error_at(Token* token, const char* message) {
+    if (parser.panic_mode) return;
+    parser.panic_mode = true;
+
     fprintf(stderr, "[line %d] error", token->line);
 
     if (token->type == TOKEN_EOF) {
@@ -59,14 +72,11 @@ static void errorAt(Token* token, const char* message) {
     }
 
     fprintf(stderr, ": %s\n", message);
+    parser.had_error = true;
 }
 
 static void error(const char* message) {
-    errorAt(previous(), message);
-}
-
-static void errorAtCurrent(const char* message) {
-    errorAt(current(), message);
+    error_at(previous(), message);
 }
 
 static void consume(TokenType type, const char* message) {
@@ -74,7 +84,7 @@ static void consume(TokenType type, const char* message) {
         advance();
         return;
     }
-    errorAtCurrent(message);
+    error_at(current(), message);
 }
 
 static void emit_byte(uint8_t byte) {
@@ -84,10 +94,6 @@ static void emit_byte(uint8_t byte) {
 static void emit_bytes(uint8_t byte1, uint8_t byte2) {
     emit_byte(byte1);
     emit_byte(byte2);
-}
-
-static void emit_return() {
-    emit_bytes(OP_PRINT, OP_RETURN);
 }
 
 static void expression();
@@ -226,7 +232,7 @@ bool compile(TokenArray* tokens, Chunk* chunk) {
 
     expression();
     consume(TOKEN_EOF, "expected end of expression");
-    emit_return();
+    emit_bytes(OP_PRINT, OP_RETURN);
 
-    return true;
+    return !parser.had_error;
 }
