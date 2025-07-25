@@ -219,10 +219,18 @@ static void grouping() {
 
 static void integer() {
     int64_t value = strtoll(previous()->start, NULL, 10);
-    if (value > INT8_MAX || value < INT8_MIN) {
-        error("only one-byte integers are supported for now");
+    if (value >= INT8_MIN && value <= INT8_MAX) {
+        emit_bytes(OP_BIPUSH, (int8_t)value);
     }
-    emit_bytes(OP_BIPUSH, (int8_t)value);
+    else if (value >= INT16_MIN && value <= INT16_MAX) {
+        emit_byte(OP_SIPUSH);
+        uint8_t high = (uint8_t)((value >> 8) & 0xFF);
+        uint8_t low = (uint8_t)(value & 0xFF);
+        emit_bytes(high, low);
+    }
+    else {
+        error("only one and two-byte integers are supported for now");
+    }    
 }
 
 bool compile(TokenArray* tokens, Chunk* chunk) {

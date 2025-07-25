@@ -8,10 +8,18 @@ static int simple_instruction(const char* name, int offset) {
     return offset + 1;
 }
 
-static int push_instruction(const char* name, Chunk* chunk, int offset) {
+static int push1byte_instruction(const char* name, Chunk* chunk, int offset) {
     int8_t value = chunk->code[offset + 1];
     printf("%-8s %d\n", name, value);
     return offset + 2;
+}
+
+static int push2byte_instruction(const char* name, Chunk* chunk, int offset) {
+    uint8_t high = chunk->code[offset + 1];
+    uint8_t low = chunk->code[offset + 2];
+    int16_t value = (int16_t)(high << 8 | low);
+    printf("%-8s %d\n", name, value);
+    return offset + 3;
 }
 
 static int disassemble_instruction(Chunk* chunk, int offset) {
@@ -25,7 +33,8 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {
         case OP_NOP:    return simple_instruction("nop", offset);
-        case OP_BIPUSH: return push_instruction("bipush", chunk, offset);
+        case OP_BIPUSH: return push1byte_instruction("bipush", chunk, offset);
+        case OP_SIPUSH: return push2byte_instruction("sipush", chunk, offset);
         case OP_IADD:   return simple_instruction("iadd", offset);
         case OP_ISUB:   return simple_instruction("isub", offset);
         case OP_IMUL:   return simple_instruction("imul", offset);

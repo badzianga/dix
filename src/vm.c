@@ -41,6 +41,12 @@ static InterpretResult run() {
             case OP_BIPUSH: {
                 push((int8_t)READ_BYTE());
             } break;
+            case OP_SIPUSH: {
+                uint8_t high = READ_BYTE();
+                uint8_t low = READ_BYTE();
+                int16_t value = (int16_t)(high << 8 | low);
+                push(value);
+            } break;
             case OP_IADD: {
                 BINARY_OP(+);
             } break;
