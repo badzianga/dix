@@ -86,6 +86,7 @@ InterpretResult interpret(const char* source) {
 
     if (!compile(&tokens, &chunk)) {
         free_chunk(&chunk);
+        free_tokens(&tokens);
         return RESULT_COMPILE_ERROR;
     }
 
@@ -99,5 +100,6 @@ InterpretResult interpret(const char* source) {
 
     InterpretResult result = run();
     free_chunk(&chunk);
+    free_tokens(&tokens);
     return result;
 }
