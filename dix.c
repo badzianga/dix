@@ -6,7 +6,7 @@
 int main(int argc, char** argv) {
     const char* executable = argv[0];
     if (argc != 2) {
-        fprintf(stderr, "usage: %s <input.dix>\n", argv[0]);
+        fprintf(stderr, "usage: %s <input.dix>\n", executable);
         exit(1);
     }
 

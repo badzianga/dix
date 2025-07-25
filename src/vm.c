@@ -74,7 +74,12 @@ InterpretResult interpret(const char* source) {
     TokenArray tokens = lex(source);
     Chunk chunk = { 0 };
 
+#ifdef DEBUG
+    print_tokens(&tokens);
+#endif
+
     if (!compile(&tokens, &chunk)) {
+        free_chunk(&chunk);
         return RESULT_COMPILE_ERROR;
     }
 
@@ -86,5 +91,7 @@ InterpretResult interpret(const char* source) {
     vm.ip = chunk.code;
     vm.stack_top = vm.stack;
 
-    return run();
+    InterpretResult result = run();
+    free_chunk(&chunk);
+    return result;
 }

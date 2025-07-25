@@ -1,17 +1,232 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "compiler.h"
 #include "vm.h"
 
-bool compile(TokenArray* tokens, Chunk* chunk) {
-    (void)tokens;
+typedef struct Parser {
+    TokenArray* tokens;
+    Token* current;
+    Chunk* current_chunk;
+} Parser;
 
-    write_chunk(chunk, OP_BIPUSH, 1);
-    write_chunk(chunk, 10, 1);
-    write_chunk(chunk, OP_INEG, 1);
-    write_chunk(chunk, OP_BIPUSH, 1);
-    write_chunk(chunk, 20, 1);
-    write_chunk(chunk, OP_IADD, 1);
-    write_chunk(chunk, OP_PRINT, 1);
-    write_chunk(chunk, OP_RETURN, 1);
+typedef enum {
+    PREC_NONE,
+    PREC_ASSIGNMENT,  // =
+    PREC_OR,          // or
+    PREC_AND,         // and
+    PREC_EQUALITY,    // == !=
+    PREC_COMPARISON,  // < > <= >=
+    PREC_TERM,        // + -
+    PREC_FACTOR,      // * /
+    PREC_UNARY,       // ! -
+    PREC_CALL,        // . ()
+    PREC_PRIMARY
+} Precedence;
+
+typedef void (*ParseFunc)();
+
+typedef struct {
+    ParseFunc prefix;
+    ParseFunc infix;
+    Precedence precedence;
+} ParseRule;
+
+static Parser parser;
+
+static Token* current() {
+    return parser.current;
+}
+
+static Token* previous() {
+    return parser.current - 1;
+}
+
+static void advance() {
+    ++parser.current;
+}
+
+static void errorAt(Token* token, const char* message) {
+    fprintf(stderr, "[line %d] error", token->line);
+
+    if (token->type == TOKEN_EOF) {
+      fprintf(stderr, " at end");
+    }
+    else if (token->type == TOKEN_ERROR) {
+
+    }
+    else {
+      fprintf(stderr, " at '%.*s'", token->length, token->start);
+    }
+
+    fprintf(stderr, ": %s\n", message);
+}
+
+static void error(const char* message) {
+    errorAt(previous(), message);
+}
+
+static void errorAtCurrent(const char* message) {
+    errorAt(current(), message);
+}
+
+static void consume(TokenType type, const char* message) {
+    if (current()->type == type) {
+        advance();
+        return;
+    }
+    errorAtCurrent(message);
+}
+
+static void emit_byte(uint8_t byte) {
+    write_chunk(parser.current_chunk, byte, previous()->line);
+}
+
+static void emit_bytes(uint8_t byte1, uint8_t byte2) {
+    emit_byte(byte1);
+    emit_byte(byte2);
+}
+
+static void emit_return() {
+    emit_bytes(OP_PRINT, OP_RETURN);
+}
+
+static void expression();
+static void binary();
+static void unary();
+static void grouping();
+static void integer();
+
+static ParseRule rules[] = {
+    [TOKEN_EOF]            = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_LEFT_PAREN]     = {grouping, NULL,   PREC_NONE},
+    [TOKEN_RIGHT_PAREN]    = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LEFT_BRACE]     = {NULL,     NULL,   PREC_NONE}, 
+    [TOKEN_RIGHT_BRACE]    = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LEFT_BRACKET]   = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_RIGHT_BRACKET]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_COMMA]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_DOT]            = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_SEMICOLON]      = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_COLON]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_COLON_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_EQUAL]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_EQUAL_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_BANG]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_BANG_EQUAL]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_GREATER]        = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_GREATER_EQUAL]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LESS]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_LESS_EQUAL]     = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_PLUS]           = {NULL,     binary, PREC_TERM},
+    [TOKEN_PLUS_EQUAL]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_MINUS]          = {unary,    binary, PREC_TERM},
+    [TOKEN_MINUS_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_ASTERISK]       = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_ASTERISK_EQUAL] = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_SLASH]          = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_SLASH_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_IDENTIFIER]     = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_INT_LITERAL]    = {integer,  NULL,   PREC_NONE},
+    [TOKEN_FLOAT_LITERAL]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_STRING_LITERAL] = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_AND]            = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_BOOL]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_CLASS]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_CONST]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_ELSE]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FALSE]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FLOAT]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FOR]            = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FUNC]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_IF]             = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_INT]            = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_NULL]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_OR]             = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_PRINT]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_RETURN]         = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_THIS]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_TRUE]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_VAR]            = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_WHILE]          = {NULL,     NULL,   PREC_NONE},
+
+    [TOKEN_ERROR]          = {NULL,     NULL,   PREC_NONE},
+};
+
+static ParseRule* get_rule(TokenType type) {
+    return &rules[type];
+}
+
+static void parse_precedence(Precedence precedence) {
+    advance();
+    ParseFunc prefix_rule = get_rule(previous()->type)->prefix;
+    if (prefix_rule == NULL) {
+        error("expected expression");
+        return;
+    }
+
+    prefix_rule();
+    while (precedence <= get_rule(current()->type)->precedence) {
+        advance();
+        ParseFunc infix_rule = get_rule(previous()->type)->infix;
+        infix_rule();
+    }
+}    
+
+static void expression() {
+    parse_precedence(PREC_ASSIGNMENT);
+}
+
+static void binary() {
+    TokenType operator_type = previous()->type;
+    ParseRule* rule = get_rule(operator_type);
+    parse_precedence((Precedence)(rule->precedence + 1));
+
+    switch (operator_type) {
+        case TOKEN_PLUS:     emit_byte(OP_IADD); break;
+        case TOKEN_MINUS:    emit_byte(OP_ISUB); break;
+        case TOKEN_ASTERISK: emit_byte(OP_IMUL); break;
+        case TOKEN_SLASH:    emit_byte(OP_IDIV); break;
+        default: break;
+    }
+}
+
+static void unary() {
+    TokenType operator_type = previous()->type;
+
+    parse_precedence(PREC_UNARY);
+
+    switch (operator_type) {
+        case TOKEN_MINUS: emit_byte(OP_INEG); break;
+        default: break;
+    }
+}
+
+static void grouping() {
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "expected ')' after expression");
+}
+
+static void integer() {
+    int64_t value = strtoll(previous()->start, NULL, 10);
+    if (value > INT8_MAX || value < INT8_MIN) {
+        error("only one-byte integers are supported for now");
+    }
+    emit_bytes(OP_BIPUSH, (int8_t)value);
+}
+
+bool compile(TokenArray* tokens, Chunk* chunk) {
+    parser.tokens = tokens;
+    parser.current = tokens->tokens;
+    parser.current_chunk = chunk;
+
+    expression();
+    consume(TOKEN_EOF, "expected end of expression");
+    emit_return();
 
     return true;
 }
