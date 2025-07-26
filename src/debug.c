@@ -40,6 +40,9 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
         case OP_IMUL:   return simple_instruction("imul", offset);
         case OP_IDIV:   return simple_instruction("idiv", offset);
         case OP_INEG:   return simple_instruction("ineg", offset);
+        case OP_TRUE:   return simple_instruction("true", offset);
+        case OP_FALSE:  return simple_instruction("false", offset);
+        case OP_NOT:    return simple_instruction("not", offset);
         case OP_PRINT:  return simple_instruction("print", offset);
         case OP_RETURN: return simple_instruction("return", offset);
         default: {

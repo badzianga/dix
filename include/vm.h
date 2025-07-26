@@ -4,6 +4,10 @@
 
 #define VM_STACK_CAPACITY 256
 
+// TODO: true/false values were pushed on the stack using BIPUSH.
+// With this, the information about being a boolean was discarded.
+// That's why special OpCodes for true/false and comparisons are present.
+
 typedef enum OpCode {
     OP_NOP = 0,
     OP_BIPUSH,
@@ -13,6 +17,9 @@ typedef enum OpCode {
     OP_IMUL,
     OP_IDIV,
     OP_INEG,
+    OP_TRUE,
+    OP_FALSE,
+    OP_NOT,
     OP_PRINT,
     OP_RETURN,
 } OpCode;

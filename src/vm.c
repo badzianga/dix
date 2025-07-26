@@ -66,6 +66,15 @@ static InterpretResult run() {
             case OP_INEG: {
                 push(INT_VALUE(-AS_INT(pop())));
             } break;
+            case OP_TRUE: {
+                push(BOOL_VALUE(true));
+            } break;
+            case OP_FALSE: {
+                push(BOOL_VALUE(false));
+            } break;
+            case OP_NOT: {
+                push(BOOL_VALUE(!AS_BOOL(pop())));
+            } break;
             case OP_PRINT: {
                 print_value(pop());
             } break;

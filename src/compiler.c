@@ -120,7 +120,7 @@ static ParseRule rules[] = {
     [TOKEN_COLON_EQUAL]    = {NULL,     NULL,   PREC_NONE},
     [TOKEN_EQUAL]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_EQUAL_EQUAL]    = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_BANG]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_BANG]           = {unary,    NULL,   PREC_NONE},
     [TOKEN_BANG_EQUAL]     = {NULL,     NULL,   PREC_NONE},
     [TOKEN_GREATER]        = {NULL,     NULL,   PREC_NONE},
     [TOKEN_GREATER_EQUAL]  = {NULL,     NULL,   PREC_NONE},
@@ -208,6 +208,7 @@ static void unary() {
     parse_precedence(PREC_UNARY);
 
     switch (operator_type) {
+        case TOKEN_BANG:  emit_byte(OP_NOT); break;
         case TOKEN_MINUS: emit_byte(OP_INEG); break;
         default: break;
     }
@@ -236,8 +237,8 @@ static void integer() {
 
 static void literal() {
     switch (previous()->type) {
-        case TOKEN_FALSE: emit_bytes(OP_BIPUSH, 0); break;
-        case TOKEN_TRUE:  emit_bytes(OP_BIPUSH, 1); break;
+        case TOKEN_FALSE: emit_byte(OP_FALSE); break;
+        case TOKEN_TRUE:  emit_byte(OP_TRUE); break;
         default: break;
     }
 }
