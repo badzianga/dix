@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "compiler.h"
+#include "value.h"
 #include "vm.h"
+
+#define VALUE_TYPE_STACK_MAX_SIZE 256
 
 typedef struct Parser {
     TokenArray* tokens;
@@ -9,6 +12,9 @@ typedef struct Parser {
     Chunk* current_chunk;
     bool had_error;
     bool panic_mode;
+
+    ValueType stack[256];
+    ValueType* stack_top;
 } Parser;
 
 typedef enum {
@@ -34,6 +40,14 @@ typedef struct {
 } ParseRule;
 
 static Parser parser = { 0 };
+
+static void push(ValueType type) {
+    *parser.stack_top++ = type;
+}
+
+static ValueType pop() {
+    return *--parser.stack_top;
+}
 
 static void error_at(Token* token, const char* message);
 static void error(const char* message);
@@ -199,28 +213,72 @@ static void expression() {
 }
 
 static void binary() {
-    TokenType operator_type = previous()->type;
-    ParseRule* rule = get_rule(operator_type);
+    Token* operator = previous();
+    ParseRule* rule = get_rule(operator->type);
     parse_precedence((Precedence)(rule->precedence + 1));
 
-    switch (operator_type) {
-        case TOKEN_PLUS:     emit_byte(OP_IADD); break;
-        case TOKEN_MINUS:    emit_byte(OP_ISUB); break;
-        case TOKEN_ASTERISK: emit_byte(OP_IMUL); break;
-        case TOKEN_SLASH:    emit_byte(OP_IDIV); break;
-        default: break;
+    ValueType type2 = pop();
+    ValueType type1 = pop();
+
+    if (type1 == VALUE_INT && type2 == VALUE_INT) {
+        switch (operator->type) {
+            case TOKEN_PLUS:     emit_byte(OP_IADD); break;
+            case TOKEN_MINUS:    emit_byte(OP_ISUB); break;
+            case TOKEN_ASTERISK: emit_byte(OP_IMUL); break;
+            case TOKEN_SLASH:    emit_byte(OP_IDIV); break;
+            default: break;
+        }
+        push(VALUE_INT);
+    }
+    else if (type1 == VALUE_FLOAT && type2 == VALUE_FLOAT) {
+        switch (operator->type) {
+            case TOKEN_PLUS:     emit_byte(OP_FADD); break;
+            case TOKEN_MINUS:    emit_byte(OP_FSUB); break;
+            case TOKEN_ASTERISK: emit_byte(OP_FMUL); break;
+            case TOKEN_SLASH:    emit_byte(OP_FDIV); break;
+            default: break;
+        }
+        push(VALUE_FLOAT);
+    }
+    else {
+        error_at(operator, "expected values of the same type");
+        push(VALUE_NONE);
     }
 }
 
 static void unary() {
-    TokenType operator_type = previous()->type;
+    Token* operator = previous();
 
     parse_precedence(PREC_UNARY);
 
-    switch (operator_type) {
-        case TOKEN_BANG:  emit_byte(OP_NOT); break;
-        case TOKEN_MINUS: emit_byte(OP_INEG); break;
-        default: break;
+    ValueType type = pop();
+
+    if (operator->type == TOKEN_MINUS) {
+        if (type == VALUE_INT) {
+            emit_byte(OP_INEG);
+            push(VALUE_INT);
+        }
+        else if (type == VALUE_FLOAT) {
+            emit_byte(OP_FNEG);
+            push(VALUE_FLOAT);
+        }
+        else {
+            error_at(operator, "invalid value type for negation");
+            push(VALUE_NONE);
+        }
+    }
+    else if (operator->type == TOKEN_BANG) {
+        if (type == VALUE_BOOL) {
+            emit_byte(OP_NOT);
+            push(VALUE_BOOL);
+        }
+        else {
+            error_at(operator, "invalid value type for not operator");
+            push(VALUE_NONE);
+        }
+    }
+    else { // unreachable
+        push(VALUE_NONE);
     }
 }
 
@@ -245,17 +303,25 @@ static void integer() {
     } else {
         error("64 bit integers are not supported for now");
     }
+    push(VALUE_INT);
 }
 
 static void floating() {
     float value = strtof(previous()->start, NULL);
     emit_bytes(OP_LOADC, push_constant(FLOAT_VALUE(value)));
+    push(VALUE_FLOAT);
 }
 
 static void literal() {
     switch (previous()->type) {
-        case TOKEN_FALSE: emit_byte(OP_FALSE); break;
-        case TOKEN_TRUE:  emit_byte(OP_TRUE); break;
+        case TOKEN_FALSE: {
+            emit_byte(OP_FALSE);
+            push(VALUE_BOOL);
+        } break;
+        case TOKEN_TRUE: {
+            emit_byte(OP_TRUE);
+            push(VALUE_BOOL);
+        } break;
         default: break;
     }
 }
@@ -264,6 +330,8 @@ bool compile(TokenArray* tokens, Chunk* chunk) {
     parser.tokens = tokens;
     parser.current = tokens->tokens;
     parser.current_chunk = chunk;
+
+    parser.stack_top = parser.stack;
 
     expression();
     consume(TOKEN_EOF, "expected end of expression");

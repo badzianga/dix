@@ -46,10 +46,15 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
         case OP_SIPUSH: return push2byte_instruction("sipush", chunk, offset);
         case OP_LOADC:  return const_instruction("loadc", chunk, offset);
         case OP_IADD:   return simple_instruction("iadd", offset);
+        case OP_FADD:   return simple_instruction("fadd", offset);
         case OP_ISUB:   return simple_instruction("isub", offset);
+        case OP_FSUB:   return simple_instruction("fsub", offset);
         case OP_IMUL:   return simple_instruction("imul", offset);
+        case OP_FMUL:   return simple_instruction("fmul", offset);
         case OP_IDIV:   return simple_instruction("idiv", offset);
+        case OP_FDIV:   return simple_instruction("fdiv", offset);
         case OP_INEG:   return simple_instruction("ineg", offset);
+        case OP_FNEG:   return simple_instruction("fneg", offset);
         case OP_TRUE:   return simple_instruction("true", offset);
         case OP_FALSE:  return simple_instruction("false", offset);
         case OP_NOT:    return simple_instruction("not", offset);

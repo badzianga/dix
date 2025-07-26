@@ -10,11 +10,11 @@
 #include "vm.h"
 
 #define READ_BYTE() (*vm.ip++)
-#define IBINARY_OP(op) \
+#define BINARY_OP(type, AS_type, out_VALUE, op) \
     do { \
-        int b = AS_INT(pop()); \
-        int a = AS_INT(pop()); \
-        push(INT_VALUE(a op b)); \
+        type b = AS_type(pop()); \
+        type a = AS_type(pop()); \
+        push(out_VALUE(a op b)); \
     } while (false)
 
 typedef struct VM {
@@ -56,19 +56,34 @@ static InterpretResult run() {
                 push(vm.chunk->constant_pool.values[index]);
             } break;
             case OP_IADD: {
-                IBINARY_OP(+);
+                BINARY_OP(int, AS_INT, INT_VALUE, +);
+            } break;
+            case OP_FADD: {
+                BINARY_OP(float, AS_FLOAT, FLOAT_VALUE, +);
             } break;
             case OP_ISUB: {
-                IBINARY_OP(-);
+                BINARY_OP(int, AS_INT, INT_VALUE, -);
+            } break;
+            case OP_FSUB: {
+                BINARY_OP(float, AS_FLOAT, FLOAT_VALUE, -);
             } break;
             case OP_IMUL: {
-                IBINARY_OP(*);
+                BINARY_OP(int, AS_INT, INT_VALUE, *);
+            } break;
+            case OP_FMUL: {
+                BINARY_OP(float, AS_FLOAT, FLOAT_VALUE, *);
             } break;
             case OP_IDIV: {
-                IBINARY_OP(/);
+                BINARY_OP(int, AS_INT, INT_VALUE, /);
+            } break;
+            case OP_FDIV: {
+                BINARY_OP(float, AS_FLOAT, FLOAT_VALUE, /);
             } break;
             case OP_INEG: {
                 push(INT_VALUE(-AS_INT(pop())));
+            } break;
+            case OP_FNEG: {
+                push(FLOAT_VALUE(-AS_FLOAT(pop())));
             } break;
             case OP_TRUE: {
                 push(BOOL_VALUE(true));
