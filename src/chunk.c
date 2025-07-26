@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "chunk.h"
 #include "memory.h"
+#include "value.h"
 
 void write_chunk(Chunk* chunk, uint8_t byte, int line) {
     if (chunk->capacity < chunk->count + 1) {
@@ -19,8 +20,16 @@ void free_chunk(Chunk* chunk) {
     free(chunk->code);
     free(chunk->lines);
 
+    free_value_array(&chunk->constant_pool);
+
     chunk->count = 0;
     chunk->capacity = 0;
     chunk->code = NULL;
     chunk->lines = NULL;
+}
+
+int add_constant(Chunk* chunk, Value value) {
+    int index = chunk->constant_pool.count;
+    push_to_value_array(&chunk->constant_pool, value);
+    return index;
 }

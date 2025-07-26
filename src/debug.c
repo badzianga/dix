@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "chunk.h"
 #include "debug.h"
+#include "value.h"
 #include "vm.h"
 
 static int simple_instruction(const char* name, int offset) {
@@ -22,6 +23,14 @@ static int push2byte_instruction(const char* name, Chunk* chunk, int offset) {
     return offset + 3;
 }
 
+static int const_instruction(const char* name, Chunk* chunk, int offset) {
+    uint8_t index = chunk->code[offset + 1];
+    printf("%-8s %d '", name, index);
+    print_value(chunk->constant_pool.values[index]);
+    printf("'\n");
+    return offset + 2;
+}
+
 static int disassemble_instruction(Chunk* chunk, int offset) {
     printf("%04d ", offset);
     if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) {
@@ -35,6 +44,7 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
         case OP_NOP:    return simple_instruction("nop", offset);
         case OP_BIPUSH: return push1byte_instruction("bipush", chunk, offset);
         case OP_SIPUSH: return push2byte_instruction("sipush", chunk, offset);
+        case OP_LOADC:  return const_instruction("loadc", chunk, offset);
         case OP_IADD:   return simple_instruction("iadd", offset);
         case OP_ISUB:   return simple_instruction("isub", offset);
         case OP_IMUL:   return simple_instruction("imul", offset);

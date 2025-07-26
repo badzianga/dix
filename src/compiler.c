@@ -96,11 +96,21 @@ static void emit_bytes(uint8_t byte1, uint8_t byte2) {
     emit_byte(byte2);
 }
 
+static uint8_t push_constant(Value value) {
+    int index = add_constant(parser.current_chunk, value);
+    if (index > UINT8_MAX) {
+        error("for now, only 256 constants are supported in the constant pool");
+        return 0;
+    }
+    return (uint8_t)index;
+}
+
 static void expression();
 static void binary();
 static void unary();
 static void grouping();
 static void integer();
+static void floating();
 static void literal();
 
 static ParseRule rules[] = {
@@ -138,7 +148,7 @@ static ParseRule rules[] = {
 
     [TOKEN_IDENTIFIER]     = {NULL,     NULL,   PREC_NONE},
     [TOKEN_INT_LITERAL]    = {integer,  NULL,   PREC_NONE},
-    [TOKEN_FLOAT_LITERAL]  = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FLOAT_LITERAL]  = {floating, NULL,   PREC_NONE},
     [TOKEN_STRING_LITERAL] = {NULL,     NULL,   PREC_NONE},
 
     [TOKEN_AND]            = {NULL,     NULL,   PREC_NONE},
@@ -230,9 +240,16 @@ static void integer() {
         uint8_t low = (uint8_t)(value & 0xFF);
         emit_bytes(high, low);
     }
-    else {
-        error("only one and two-byte integers are supported for now");
-    }    
+    else if (value >= INT32_MIN && value <= INT32_MAX) {
+        emit_bytes(OP_LOADC, push_constant(INT_VALUE(value)));
+    } else {
+        error("64 bit integers are not supported for now");
+    }
+}
+
+static void floating() {
+    float value = strtof(previous()->start, NULL);
+    emit_bytes(OP_LOADC, push_constant(FLOAT_VALUE(value)));
 }
 
 static void literal() {

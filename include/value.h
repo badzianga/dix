@@ -30,4 +30,13 @@ typedef struct Value {
 #define IS_INT(value)      ((value).type == VALUE_INT)
 #define IS_FLOAT(value)    ((value).type == VALUE_FLOAT)
 
+typedef struct {
+    int count;
+    int capacity;
+    Value* values;
+} ValueArray;
+
 void print_value(Value value);
+
+void push_to_value_array(ValueArray* array, Value value);
+void free_value_array(ValueArray* array);

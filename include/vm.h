@@ -4,7 +4,7 @@
 
 #define VM_STACK_CAPACITY 256
 
-// TODO: true/false values were pushed on the stack using BIPUSH.
+// TODO: true/false values were pushed on the stack using BIPUSH as 1/0.
 // With this, the information about being a boolean was discarded.
 // That's why special OpCodes for true/false and comparisons are present.
 
@@ -12,6 +12,7 @@ typedef enum OpCode {
     OP_NOP = 0,
     OP_BIPUSH,
     OP_SIPUSH,
+    OP_LOADC,
     OP_IADD,
     OP_ISUB,
     OP_IMUL,

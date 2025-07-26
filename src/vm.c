@@ -51,6 +51,10 @@ static InterpretResult run() {
                 int16_t value = (int16_t)(high << 8 | low);
                 push(INT_VALUE(value));
             } break;
+            case OP_LOADC: {
+                uint8_t index = READ_BYTE();
+                push(vm.chunk->constant_pool.values[index]);
+            } break;
             case OP_IADD: {
                 IBINARY_OP(+);
             } break;
@@ -77,6 +81,7 @@ static InterpretResult run() {
             } break;
             case OP_PRINT: {
                 print_value(pop());
+                putchar('\n');
             } break;
             case OP_RETURN: {
                 return RESULT_OK;
