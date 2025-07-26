@@ -330,6 +330,8 @@ bool compile(TokenArray* tokens, Chunk* chunk) {
     parser.tokens = tokens;
     parser.current = tokens->tokens;
     parser.current_chunk = chunk;
+    parser.had_error = false;
+    parser.panic_mode = false;
 
     parser.stack_top = parser.stack;
 
