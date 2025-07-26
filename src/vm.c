@@ -6,12 +6,16 @@
 #include "debug.h"
 #endif
 #include "lexer.h"
+#include "value.h"
 #include "vm.h"
 
 #define READ_BYTE() (*vm.ip++)
-#define BINARY_OP(op) do { Value b = pop(); Value a = pop(); push(a op b); } while (false)
-
-typedef int Value;
+#define IBINARY_OP(op) \
+    do { \
+        int b = AS_INT(pop()); \
+        int a = AS_INT(pop()); \
+        push(INT_VALUE(a op b)); \
+    } while (false)
 
 typedef struct VM {
     Chunk* chunk;
@@ -39,31 +43,31 @@ static InterpretResult run() {
                 continue;
             } break;
             case OP_BIPUSH: {
-                push((int8_t)READ_BYTE());
+                push(INT_VALUE((int8_t)READ_BYTE()));
             } break;
             case OP_SIPUSH: {
                 uint8_t high = READ_BYTE();
                 uint8_t low = READ_BYTE();
                 int16_t value = (int16_t)(high << 8 | low);
-                push(value);
+                push(INT_VALUE(value));
             } break;
             case OP_IADD: {
-                BINARY_OP(+);
+                IBINARY_OP(+);
             } break;
             case OP_ISUB: {
-                BINARY_OP(-);
+                IBINARY_OP(-);
             } break;
             case OP_IMUL: {
-                BINARY_OP(*);
+                IBINARY_OP(*);
             } break;
             case OP_IDIV: {
-                BINARY_OP(/);
+                IBINARY_OP(/);
             } break;
             case OP_INEG: {
-                push(-pop());
+                push(INT_VALUE(-AS_INT(pop())));
             } break;
             case OP_PRINT: {
-                printf("%d\n", pop());
+                print_value(pop());
             } break;
             case OP_RETURN: {
                 return RESULT_OK;
