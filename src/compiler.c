@@ -101,6 +101,7 @@ static void binary();
 static void unary();
 static void grouping();
 static void integer();
+static void literal();
 
 static ParseRule rules[] = {
     [TOKEN_EOF]            = {NULL,     NULL,   PREC_NONE},
@@ -145,7 +146,7 @@ static ParseRule rules[] = {
     [TOKEN_CLASS]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_CONST]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_ELSE]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_FALSE]          = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_FALSE]          = {literal,  NULL,   PREC_NONE},
     [TOKEN_FLOAT]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_FOR]            = {NULL,     NULL,   PREC_NONE},
     [TOKEN_FUNC]           = {NULL,     NULL,   PREC_NONE},
@@ -156,7 +157,7 @@ static ParseRule rules[] = {
     [TOKEN_PRINT]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_RETURN]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_THIS]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_TRUE]           = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_TRUE]           = {literal,  NULL,   PREC_NONE},
     [TOKEN_VAR]            = {NULL,     NULL,   PREC_NONE},
     [TOKEN_WHILE]          = {NULL,     NULL,   PREC_NONE},
 
@@ -231,6 +232,14 @@ static void integer() {
     else {
         error("only one and two-byte integers are supported for now");
     }    
+}
+
+static void literal() {
+    switch (previous()->type) {
+        case TOKEN_FALSE: emit_bytes(OP_BIPUSH, 0); break;
+        case TOKEN_TRUE:  emit_bytes(OP_BIPUSH, 1); break;
+        default: break;
+    }
 }
 
 bool compile(TokenArray* tokens, Chunk* chunk) {
