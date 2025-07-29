@@ -1,6 +1,6 @@
 #pragma once
 #include <stdbool.h>
 #include "chunk.h"
-#include "lexer.h"
+#include "parser.h"
 
-bool compile(TokenArray* tokens, Chunk* chunk);
+bool compile(ASTNode* ast, Chunk* chunk);

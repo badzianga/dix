@@ -112,35 +112,38 @@ static InterpretResult run() {
 
 InterpretResult interpret(const char* source) {
     TokenArray tokens = lex(source);
-    // Chunk chunk = { 0 };
-
 #ifdef DEBUG
     print_tokens(&tokens);
 #endif
 
-    // if (!compile(&tokens, &chunk)) {
-    //     free_chunk(&chunk);
-    //     free_tokens(&tokens);
-    //     return RESULT_COMPILE_ERROR;
-    // }
-
-    ASTNode* ast = parse(&tokens);
-
+    ASTNode* ast = NULL;
+    if (!parse(&tokens, &ast)) {
+        free_ast(ast);
+        free_tokens(&tokens);
+        return RESULT_PARSE_ERROR;
+    }
+#ifdef DEBUG
     print_ast(ast, 0);
+#endif
 
-// #ifdef DEBUG
-//     disassemble_chunk(&chunk);
-// #endif
+    Chunk chunk = { 0 };
+    if (!compile(ast, &chunk)) {
+        free_chunk(&chunk);
+        free_ast(ast);
+        free_tokens(&tokens);
+        return RESULT_COMPILE_ERROR;
+    }
+#ifdef DEBUG
+    disassemble_chunk(&chunk);
+#endif
 
-    // vm.chunk = &chunk;
-    // vm.ip = chunk.code;
-    // vm.stack_top = vm.stack;
+    vm.chunk = &chunk;
+    vm.ip = chunk.code;
+    vm.stack_top = vm.stack;
 
-    // InterpretResult result = run();
-    // free_chunk(&chunk);
-    free_tokens(&tokens);
+    InterpretResult result = run();
+    free_chunk(&chunk);
     free_ast(ast);
-    // return result;
-
-    return RESULT_OK;
+    free_tokens(&tokens);
+    return result;
 }

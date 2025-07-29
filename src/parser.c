@@ -133,11 +133,13 @@ static ASTNode* parse_primary() {
     exit(1);
 }
 
-ASTNode* parse(TokenArray* token_array) {
+bool parse(TokenArray* token_array, ASTNode** output) {
     parser.tokens = token_array;
     parser.current = token_array->tokens;
 
-    return parse_expression();
+    *output = parse_expression();
+
+    return !parser.had_error;
 }
 
 void print_ast(ASTNode* root, int indent) {

@@ -27,7 +27,7 @@ typedef struct ASTNode {
     };
 } ASTNode;
 
-ASTNode* parse(TokenArray* token_array);
+bool parse(TokenArray* token_array, ASTNode** output);
 
 void print_ast(ASTNode* root, int indent);
 void free_ast(ASTNode* root);
