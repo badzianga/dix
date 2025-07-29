@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "chunk.h"
 #include "compiler.h"
+#include "parser.h"
 #ifdef DEBUG
 #include "debug.h"
 #endif
@@ -111,28 +112,35 @@ static InterpretResult run() {
 
 InterpretResult interpret(const char* source) {
     TokenArray tokens = lex(source);
-    Chunk chunk = { 0 };
+    // Chunk chunk = { 0 };
 
 #ifdef DEBUG
     print_tokens(&tokens);
 #endif
 
-    if (!compile(&tokens, &chunk)) {
-        free_chunk(&chunk);
-        free_tokens(&tokens);
-        return RESULT_COMPILE_ERROR;
-    }
+    // if (!compile(&tokens, &chunk)) {
+    //     free_chunk(&chunk);
+    //     free_tokens(&tokens);
+    //     return RESULT_COMPILE_ERROR;
+    // }
 
-#ifdef DEBUG
-    disassemble_chunk(&chunk);
-#endif
+    ASTNode* ast = parse(&tokens);
 
-    vm.chunk = &chunk;
-    vm.ip = chunk.code;
-    vm.stack_top = vm.stack;
+    print_ast(ast, 0);
 
-    InterpretResult result = run();
-    free_chunk(&chunk);
+// #ifdef DEBUG
+//     disassemble_chunk(&chunk);
+// #endif
+
+    // vm.chunk = &chunk;
+    // vm.ip = chunk.code;
+    // vm.stack_top = vm.stack;
+
+    // InterpretResult result = run();
+    // free_chunk(&chunk);
     free_tokens(&tokens);
-    return result;
+    free_ast(ast);
+    // return result;
+
+    return RESULT_OK;
 }

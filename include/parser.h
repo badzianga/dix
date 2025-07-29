@@ -27,9 +27,7 @@ typedef struct ASTNode {
     };
 } ASTNode;
 
-ASTNode* make_node_binary(ASTNode* left, TokenType op, ASTNode* right);
-ASTNode* make_node_unary(TokenType op, ASTNode* right);
-ASTNode* make_node_literal(Value value);
+ASTNode* parse(TokenArray* token_array);
 
 void print_ast(ASTNode* root, int indent);
 void free_ast(ASTNode* root);
