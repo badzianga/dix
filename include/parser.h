@@ -10,6 +10,7 @@ typedef enum ASTNodeType {
 
 typedef struct ASTNode {
     ASTNodeType type;
+    ValueType inferred_type;
 
     union {
         struct {

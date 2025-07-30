@@ -34,12 +34,26 @@ static void binary(ASTNode* node) {
     traverse_ast(node->binary.left);
     traverse_ast(node->binary.right);
 
-    switch (node->binary.op) {
-        case TOKEN_PLUS:     emit_byte(OP_IADD); break;
-        case TOKEN_MINUS:    emit_byte(OP_ISUB); break;
-        case TOKEN_ASTERISK: emit_byte(OP_IMUL); break;
-        case TOKEN_SLASH:    emit_byte(OP_IDIV); break;
-        default: break;
+    if (node->inferred_type == VALUE_INT) {
+        switch (node->binary.op) {
+            case TOKEN_PLUS:     emit_byte(OP_IADD); break;
+            case TOKEN_MINUS:    emit_byte(OP_ISUB); break;
+            case TOKEN_ASTERISK: emit_byte(OP_IMUL); break;
+            case TOKEN_SLASH:    emit_byte(OP_IDIV); break;
+            default: break;
+        }
+    }
+    else if (node->inferred_type == VALUE_FLOAT) {
+        switch (node->binary.op) {
+            case TOKEN_PLUS:     emit_byte(OP_FADD); break;
+            case TOKEN_MINUS:    emit_byte(OP_FSUB); break;
+            case TOKEN_ASTERISK: emit_byte(OP_FMUL); break;
+            case TOKEN_SLASH:    emit_byte(OP_FDIV); break;
+            default: break;
+        }
+    }
+    else {
+        // invalid operands
     }
 }
 
@@ -47,7 +61,9 @@ static void unary(ASTNode* node) {
     traverse_ast(node->unary.right);
 
     if (node->unary.op == TOKEN_MINUS) {
-        emit_byte(OP_INEG);
+        if (node->inferred_type == VALUE_INT) emit_byte(OP_INEG);
+        else if (node->inferred_type == VALUE_FLOAT) emit_byte(OP_FNEG);
+        else return;  // invalid operand
     }
     else if (node->unary.op == TOKEN_BANG) {
         emit_byte(OP_NOT);
