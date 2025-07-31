@@ -43,36 +43,17 @@ static void consume_expected(TokenType token, const char* error_if_fail) {
 static ASTNode* make_node_binary(ASTNode* left, TokenType op, ASTNode* right) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NODE_BINARY;
+    node->inferred_type = VALUE_NONE;
     node->binary.left = left;
     node->binary.op = op;
     node->binary.right = right;
-
-    ValueType lt = left->inferred_type;
-    ValueType rt = right->inferred_type;
-    ValueType result_type = VALUE_NONE;
-
-    if (lt == VALUE_FLOAT || rt == VALUE_FLOAT) result_type = VALUE_FLOAT;
-    else if (lt == VALUE_INT || rt == VALUE_INT) result_type = VALUE_INT;
-    else result_type = VALUE_BOOL;
-
-    node->inferred_type = result_type;
-
     return node;
 }
 
 static ASTNode* make_node_unary(TokenType op, ASTNode* right) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NODE_UNARY;
-    switch (op) {
-        case TOKEN_MINUS: {
-            node->inferred_type = (right->inferred_type == VALUE_BOOL) ? VALUE_INT : right->inferred_type;
-        } break;
-        case TOKEN_BANG: {
-            node->inferred_type = VALUE_BOOL;
-        } break;
-        default: break;
-    }
-    node->inferred_type = right->inferred_type;
+    node->inferred_type = VALUE_NONE;
     node->unary.op = op;
     node->unary.right = right;
     return node;
@@ -81,7 +62,7 @@ static ASTNode* make_node_unary(TokenType op, ASTNode* right) {
 static ASTNode* make_node_literal(Value value) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NODE_LITERAL;
-    node->inferred_type = value.type;
+    node->inferred_type = VALUE_NONE;
     node->literal = value;
     return node;
 }

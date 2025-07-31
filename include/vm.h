@@ -33,6 +33,7 @@ typedef enum OpCode {
 typedef enum InterpretResult {
     RESULT_OK,
     RESULT_PARSE_ERROR,
+    RESULT_ANALYZE_ERROR,
     RESULT_COMPILE_ERROR,
     RESULT_RUNTIME_ERROR,
 } InterpretResult;

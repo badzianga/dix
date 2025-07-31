@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include "chunk.h"
 #include "compiler.h"
-#include "parser.h"
 #ifdef DEBUG
 #include "debug.h"
 #endif
 #include "lexer.h"
+#include "parser.h"
+#include "semantic.h"
 #include "value.h"
 #include "vm.h"
 
@@ -114,6 +115,7 @@ InterpretResult interpret(const char* source) {
     TokenArray tokens = lex(source);
 #ifdef DEBUG
     print_tokens(&tokens);
+    printf("----------------------------------------------------------------\n");
 #endif
 
     ASTNode* ast = NULL;
@@ -124,6 +126,17 @@ InterpretResult interpret(const char* source) {
     }
 #ifdef DEBUG
     print_ast(ast, 0);
+    printf("----------------------------------------------------------------\n");
+#endif
+
+    if (!analyze(ast)) {
+        free_ast(ast);
+        free_tokens(&tokens);
+        return RESULT_ANALYZE_ERROR;
+    }
+#ifdef DEBUG
+    print_ast(ast, 0);
+    printf("----------------------------------------------------------------\n");
 #endif
 
     Chunk chunk = { 0 };
@@ -135,6 +148,7 @@ InterpretResult interpret(const char* source) {
     }
 #ifdef DEBUG
     disassemble_chunk(&chunk);
+    printf("----------------------------------------------------------------\n");
 #endif
 
     vm.chunk = &chunk;
