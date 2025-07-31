@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
@@ -9,6 +10,14 @@ typedef struct Analyzer {
 } Analyzer;
 
 static Analyzer analyzer = { 0 };
+
+static ASTNode* make_node_cast(ValueType target_type, ASTNode* expression) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_NODE_CAST;
+    node->cast.target_type = target_type;
+    node->cast.expression = expression;
+    return node;
+}
 
 void analyze_ast(ASTNode* root) {
     switch (root->type) {
@@ -61,6 +70,13 @@ void analyze_ast(ASTNode* root) {
         } break;
         case AST_NODE_LITERAL: {
             root->inferred_type = root->literal.type;
+        } break;
+        case AST_NODE_CAST: {
+            root->inferred_type = root->cast.target_type;
+        } break;
+        default: {
+            fprintf(stderr, "unknown node type: %d\n", root->type);
+            analyzer.had_error = true;
         } break;
     }
 }

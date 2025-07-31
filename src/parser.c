@@ -163,6 +163,17 @@ void print_ast(ASTNode* root, int indent) {
             print_value(root->literal);
             printf("\n");
         } break;
+        case AST_NODE_CAST: {
+            char* value_type = "";
+            switch (root->cast.target_type) {
+                case VALUE_BOOL: value_type = "bool"; break;
+                case VALUE_INT: value_type = "int"; break;
+                case VALUE_FLOAT: value_type = "float"; break;
+                default: break;
+            }
+            printf("Cast: %s\n", value_type);
+            print_ast(root->cast.expression, indent + 1);
+        } break;
         default: {
             fprintf(stderr, "Unknown AST node type: %d\n", root->type);
             exit(1);
@@ -180,6 +191,9 @@ void free_ast(ASTNode* root) {
             free(root->unary.right);
         } break;
         case AST_NODE_LITERAL: break;
+        case AST_NODE_CAST: {
+            free(root->cast.expression);
+        } break;
         default: {
             fprintf(stderr, "Unknown AST node type: %d\n", root->type);
             exit(1);

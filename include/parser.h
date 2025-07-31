@@ -6,6 +6,7 @@ typedef enum ASTNodeType {
     AST_NODE_BINARY,
     AST_NODE_UNARY,
     AST_NODE_LITERAL,
+    AST_NODE_CAST,
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -25,6 +26,11 @@ typedef struct ASTNode {
         } unary;
 
         Value literal;
+
+        struct {
+            ValueType target_type;
+            struct ASTNode* expression;
+        } cast;
     };
 } ASTNode;
 
