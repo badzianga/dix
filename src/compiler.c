@@ -121,6 +121,35 @@ void traverse_ast(ASTNode* node) {
                 default: break;
             }
         } break;
+        case AST_NODE_CAST: {
+            switch (node->cast.target_type) {
+                case VALUE_BOOL: {
+                    switch (node->cast.expression->inferred_type) {
+                        case VALUE_BOOL: break;
+                        case VALUE_INT: emit_byte(OP_I2B); break;
+                        case VALUE_FLOAT: emit_byte(OP_F2B); break;
+                        default: break;
+                    }
+                } break;
+                case VALUE_INT: {
+                    switch (node->cast.expression->inferred_type) {
+                        case VALUE_BOOL: emit_byte(OP_B2I); break;
+                        case VALUE_INT: break;
+                        case VALUE_FLOAT: emit_byte(OP_F2I); break;
+                        default: break;
+                    }
+                } break;
+                case VALUE_FLOAT: {
+                    switch (node->cast.expression->inferred_type) {
+                        case VALUE_BOOL: emit_byte(OP_B2F); break;
+                        case VALUE_INT: emit_byte(OP_I2F); break;
+                        case VALUE_FLOAT: break;
+                        default: break;
+                    }
+                } break;
+                default: break;
+            } 
+        }
         default: break;
     }
 }

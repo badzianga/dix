@@ -42,6 +42,12 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
     uint8_t instruction = chunk->code[offset];
     switch (instruction) {
         case OP_NOP:    return simple_instruction("nop", offset);
+        case OP_B2I:    return simple_instruction("b2i", offset);
+        case OP_B2F:    return simple_instruction("b2f", offset);
+        case OP_I2B:    return simple_instruction("i2b", offset);
+        case OP_I2F:    return simple_instruction("i2f", offset);
+        case OP_F2B:    return simple_instruction("f2b", offset);
+        case OP_F2I:    return simple_instruction("f2i", offset);
         case OP_BIPUSH: return push1byte_instruction("bipush", chunk, offset);
         case OP_SIPUSH: return push2byte_instruction("sipush", chunk, offset);
         case OP_LOADC:  return const_instruction("loadc", chunk, offset);

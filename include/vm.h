@@ -10,6 +10,12 @@
 
 typedef enum OpCode {
     OP_NOP = 0,
+    OP_B2I,
+    OP_B2F,
+    OP_I2B,
+    OP_I2F,
+    OP_F2B,
+    OP_F2I,
     OP_BIPUSH,
     OP_SIPUSH,
     OP_LOADC,

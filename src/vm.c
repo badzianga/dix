@@ -44,6 +44,24 @@ static InterpretResult run() {
             case OP_NOP: {
                 continue;
             } break;
+            case OP_B2I: {
+                push(INT_VALUE(AS_BOOL(pop()) ? 1 : 0));
+            } break;
+            case OP_B2F: {
+                push(FLOAT_VALUE(AS_BOOL(pop()) ? 1.f : 0.f));
+            } break;
+            case OP_I2B: {
+                push(BOOL_VALUE(AS_INT(pop()) != 0));
+            } break;
+            case OP_I2F: {
+                push(FLOAT_VALUE((float)AS_INT(pop())));
+            } break;
+            case OP_F2B: {
+                push(BOOL_VALUE(AS_FLOAT(pop()) != 0.f));
+            } break;
+            case OP_F2I: {
+                push(INT_VALUE((int32_t)AS_FLOAT(pop())));
+            } break;
             case OP_BIPUSH: {
                 push(INT_VALUE((int8_t)READ_BYTE()));
             } break;
