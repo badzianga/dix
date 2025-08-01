@@ -99,6 +99,38 @@ static void floating(ASTNode* node) {
     emit_bytes(OP_LOADC, push_constant(FLOAT_VALUE(node->literal.as.float_)));
 }
 
+static void cast(ASTNode* node) {
+    traverse_ast(node->cast.expression);
+
+    switch (node->cast.target_type) {
+        case VALUE_BOOL: {
+            switch (node->cast.expression->inferred_type) {
+                case VALUE_BOOL: break;
+                case VALUE_INT: emit_byte(OP_I2B); break;
+                case VALUE_FLOAT: emit_byte(OP_F2B); break;
+                default: break;
+            }
+        } break;
+        case VALUE_INT: {
+            switch (node->cast.expression->inferred_type) {
+                case VALUE_BOOL: emit_byte(OP_B2I); break;
+                case VALUE_INT: break;
+                case VALUE_FLOAT: emit_byte(OP_F2I); break;
+                default: break;
+            }
+        } break;
+        case VALUE_FLOAT: {
+            switch (node->cast.expression->inferred_type) {
+                case VALUE_BOOL: emit_byte(OP_B2F); break;
+                case VALUE_INT: emit_byte(OP_I2F); break;
+                case VALUE_FLOAT: break;
+                default: break;
+            }
+        } break;
+        default: break;
+    }
+}
+
 void traverse_ast(ASTNode* node) {
     switch (node->type) {
         case AST_NODE_BINARY: {
@@ -122,34 +154,8 @@ void traverse_ast(ASTNode* node) {
             }
         } break;
         case AST_NODE_CAST: {
-            switch (node->cast.target_type) {
-                case VALUE_BOOL: {
-                    switch (node->cast.expression->inferred_type) {
-                        case VALUE_BOOL: break;
-                        case VALUE_INT: emit_byte(OP_I2B); break;
-                        case VALUE_FLOAT: emit_byte(OP_F2B); break;
-                        default: break;
-                    }
-                } break;
-                case VALUE_INT: {
-                    switch (node->cast.expression->inferred_type) {
-                        case VALUE_BOOL: emit_byte(OP_B2I); break;
-                        case VALUE_INT: break;
-                        case VALUE_FLOAT: emit_byte(OP_F2I); break;
-                        default: break;
-                    }
-                } break;
-                case VALUE_FLOAT: {
-                    switch (node->cast.expression->inferred_type) {
-                        case VALUE_BOOL: emit_byte(OP_B2F); break;
-                        case VALUE_INT: emit_byte(OP_I2F); break;
-                        case VALUE_FLOAT: break;
-                        default: break;
-                    }
-                } break;
-                default: break;
-            } 
-        }
+            cast(node); 
+        } break;
         default: break;
     }
 }
