@@ -31,6 +31,7 @@ ASTNode* make_node_literal(Value value) {
 ASTNode* make_node_cast(ValueType target_type, ASTNode* expression) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NODE_CAST;
+    node->inferred_type = VALUE_NONE;
     node->cast.target_type = target_type;
     node->cast.expression = expression;
     return node;

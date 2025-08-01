@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "lexer.h"
 #include "make_node.h"
 #include "parser.h"
 #include "value.h"
@@ -16,6 +17,10 @@ static Parser parser = { 0 };
 
 inline static Token* previous_token() {
     return parser.current - 1;
+}
+
+inline static Token* next_token() {
+    return parser.current + 1;
 }
 
 static bool match(int argc, ...) {
@@ -45,6 +50,7 @@ static ASTNode* parse_expression();
 static ASTNode* parse_term();
 static ASTNode* parse_factor();
 static ASTNode* parse_unary();
+static ASTNode* parse_cast();
 static ASTNode* parse_primary();
 
 static ASTNode* parse_expression() {
@@ -74,8 +80,26 @@ static ASTNode* parse_factor() {
 static ASTNode* parse_unary() {
     if (match(2, TOKEN_MINUS, TOKEN_BANG)) {
         TokenType op = previous_token()->type;
-        ASTNode* right = parse_primary();
+        ASTNode* right = parse_cast();
         return make_node_unary(op, right);
+    }
+    return parse_cast();
+}
+
+static ASTNode* parse_cast() {
+    if (parser.current->type == TOKEN_LEFT_PAREN && next_token()->type) {
+        parser.current += 2;
+        TokenType type = previous_token()->type;
+        ValueType value_type = VALUE_NONE;
+        switch (type) {
+            case TOKEN_BOOL: value_type = VALUE_BOOL; break;
+            case TOKEN_INT: value_type = VALUE_INT; break;
+            case TOKEN_FLOAT: value_type = VALUE_FLOAT; break;
+            default: break;
+        }
+        consume_expected(TOKEN_RIGHT_PAREN, "expected closing parenthesis after cast");
+        ASTNode* expression = parse_cast();
+        return make_node_cast(value_type, expression);
     }
     return parse_primary();
 }

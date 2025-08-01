@@ -72,6 +72,7 @@ void analyze_ast(ASTNode* root) {
             root->inferred_type = root->literal.type;
         } break;
         case AST_NODE_CAST: {
+            analyze(root->cast.expression);
             root->inferred_type = root->cast.target_type;
         } break;
         default: {
