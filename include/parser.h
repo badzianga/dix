@@ -36,5 +36,4 @@ typedef struct ASTNode {
 
 bool parse(TokenArray* token_array, ASTNode** output);
 
-void print_ast(ASTNode* root, int indent);
 void free_ast(ASTNode* root);

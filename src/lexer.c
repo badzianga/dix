@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
@@ -216,30 +215,6 @@ void free_tokens(TokenArray* token_array) {
     token_array->tokens = NULL;
     token_array->count = 0;
     token_array->capacity = 0;
-}
-
-void print_tokens(TokenArray* token_array) {
-    const Token* end = token_array->tokens + token_array->count;
-    for (const Token* token = token_array->tokens; token != end; ++token) {
-        TokenType type = token->type;
-
-        if ((type >= TOKEN_IDENTIFIER && type <= TOKEN_STRING_LITERAL) || type == TOKEN_ERROR) {
-            printf(
-                "Line: %d,\ttoken: %s,\tvalue: %.*s\n",
-                token->line,
-                token_as_cstr(type),
-                token->length,
-                token->start
-            );
-        }
-        else {
-            printf(
-                "Line: %d,\ttoken: %s\n",
-                token->line,
-                token_as_cstr(type)
-            );
-        }
-    }
 }
 
 const char* token_as_cstr(TokenType type) {

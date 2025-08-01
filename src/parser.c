@@ -119,42 +119,6 @@ bool parse(TokenArray* token_array, ASTNode** output) {
     return !parser.had_error;
 }
 
-void print_ast(ASTNode* root, int indent) {
-    for (int i = 0; i < indent; ++i) printf("  ");
-
-    switch (root->type) {
-        case AST_NODE_BINARY: {
-            printf("Binary: %s\n", token_as_cstr(root->binary.op));
-            print_ast(root->binary.left, indent + 1);
-            print_ast(root->binary.right, indent + 1);
-        } break;
-        case AST_NODE_UNARY: {
-            printf("Unary: %s\n", token_as_cstr(root->unary.op));
-            print_ast(root->unary.right, indent + 1);
-        } break;
-        case AST_NODE_LITERAL: {
-            printf("Literal: ");
-            print_value(root->literal);
-            printf("\n");
-        } break;
-        case AST_NODE_CAST: {
-            char* value_type = "";
-            switch (root->cast.target_type) {
-                case VALUE_BOOL: value_type = "bool"; break;
-                case VALUE_INT: value_type = "int"; break;
-                case VALUE_FLOAT: value_type = "float"; break;
-                default: break;
-            }
-            printf("Cast: %s\n", value_type);
-            print_ast(root->cast.expression, indent + 1);
-        } break;
-        default: {
-            fprintf(stderr, "Unknown AST node type: %d\n", root->type);
-            exit(1);
-        } break;
-    }
-}
-
 void free_ast(ASTNode* root) {
     switch (root->type) {
         case AST_NODE_BINARY: {

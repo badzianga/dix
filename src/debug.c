@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "chunk.h"
 #include "debug.h"
+#include "parser.h"
 #include "value.h"
 #include "vm.h"
 
@@ -70,6 +71,65 @@ static int disassemble_instruction(Chunk* chunk, int offset) {
             printf("debug::disassemble_instruction: unknown opcode: %d\n", instruction);
             return offset + 1;
         }
+    }
+}
+
+void print_tokens(TokenArray* token_array) {
+    const Token* end = token_array->tokens + token_array->count;
+    for (const Token* token = token_array->tokens; token != end; ++token) {
+        TokenType type = token->type;
+
+        if ((type >= TOKEN_IDENTIFIER && type <= TOKEN_STRING_LITERAL) || type == TOKEN_ERROR) {
+            printf(
+                "Line: %d,\ttoken: %s,\tvalue: %.*s\n",
+                token->line,
+                token_as_cstr(type),
+                token->length,
+                token->start
+            );
+        }
+        else {
+            printf(
+                "Line: %d,\ttoken: %s\n",
+                token->line,
+                token_as_cstr(type)
+            );
+        }
+    }
+}
+
+void print_ast(ASTNode* root, int indent) {
+    for (int i = 0; i < indent; ++i) printf("  ");
+
+    switch (root->type) {
+        case AST_NODE_BINARY: {
+            printf("Binary: %s\n", token_as_cstr(root->binary.op));
+            print_ast(root->binary.left, indent + 1);
+            print_ast(root->binary.right, indent + 1);
+        } break;
+        case AST_NODE_UNARY: {
+            printf("Unary: %s\n", token_as_cstr(root->unary.op));
+            print_ast(root->unary.right, indent + 1);
+        } break;
+        case AST_NODE_LITERAL: {
+            printf("Literal: ");
+            print_value(root->literal);
+            printf("\n");
+        } break;
+        case AST_NODE_CAST: {
+            char* value_type = "";
+            switch (root->cast.target_type) {
+                case VALUE_BOOL: value_type = "bool"; break;
+                case VALUE_INT: value_type = "int"; break;
+                case VALUE_FLOAT: value_type = "float"; break;
+                default: break;
+            }
+            printf("Cast: %s\n", value_type);
+            print_ast(root->cast.expression, indent + 1);
+        } break;
+        default: {
+            printf("Unknown: %d\n", root->type);
+        } break;
     }
 }
 
