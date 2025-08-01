@@ -38,10 +38,31 @@ static bool match(int argc, ...) {
     return false;
 }
 
+static void error_at(Token* token, const char* message) {
+    if (parser.panic_mode) return;
+    parser.panic_mode = true;
+    fprintf(stderr, "[line %d] error", token->line);
+
+    if (token->type == TOKEN_EOF) {
+        fprintf(stderr, " at end");
+    }
+    else if (token->type == TOKEN_ERROR) {}
+    else {
+        fprintf(stderr, " at '%.*s'", token->length, token->start);
+    }
+
+    fprintf(stderr, ": %s\n", message);
+    parser.had_error = true;
+}
+
+static void error_at_current(const char* message) {
+    error_at(parser.current, message);
+}
+
 static void consume_expected(TokenType token, const char* error_if_fail) {
     if (parser.current->type != token) {
-        fprintf(stderr, "error: %s\n", error_if_fail);
-        exit(1);
+        error_at_current(error_if_fail);
+        return;
     }
     ++parser.current;
 }
@@ -126,17 +147,19 @@ static ASTNode* parse_primary() {
     }
 
     if (parser.current->type == TOKEN_ERROR) {
-        fprintf(stderr, "error: %.*s\n", parser.current->length, parser.current->start);
+        error_at_current(parser.current->start);
     }
     else {
-        fprintf(stderr, "error: unexpected value: '%.*s'\n", parser.current->length, parser.current->start);
+        error_at_current("unexpected value");
     }
-    exit(1);
+    return NULL;
 }
 
 bool parse(TokenArray* token_array, ASTNode** output) {
     parser.tokens = token_array;
     parser.current = token_array->tokens;
+    parser.had_error = false;
+    parser.panic_mode = false;
 
     *output = parse_expression();
 
@@ -157,8 +180,7 @@ void free_ast(ASTNode* root) {
             free(root->cast.expression);
         } break;
         default: {
-            fprintf(stderr, "Unknown AST node type: %d\n", root->type);
-            exit(1);
+            fprintf(stderr, "unknown AST node type: %d\n", root->type);
         }
     }
     free(root);
