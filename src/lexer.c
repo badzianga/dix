@@ -77,6 +77,7 @@ static Token read_number() {
         advance();
 
         while (isdigit(peek())) advance();
+        if (peek() == 'f') advance();
 
         return make_token(TOKEN_FLOAT_LITERAL);
     }
