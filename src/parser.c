@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "make_node.h"
 #include "parser.h"
 #include "value.h"
 
@@ -38,33 +39,6 @@ static void consume_expected(TokenType token, const char* error_if_fail) {
         exit(1);
     }
     ++parser.current;
-}
-
-static ASTNode* make_node_binary(ASTNode* left, TokenType op, ASTNode* right) {
-    ASTNode* node = malloc(sizeof(ASTNode));
-    node->type = AST_NODE_BINARY;
-    node->inferred_type = VALUE_NONE;
-    node->binary.left = left;
-    node->binary.op = op;
-    node->binary.right = right;
-    return node;
-}
-
-static ASTNode* make_node_unary(TokenType op, ASTNode* right) {
-    ASTNode* node = malloc(sizeof(ASTNode));
-    node->type = AST_NODE_UNARY;
-    node->inferred_type = VALUE_NONE;
-    node->unary.op = op;
-    node->unary.right = right;
-    return node;
-}
-
-static ASTNode* make_node_literal(Value value) {
-    ASTNode* node = malloc(sizeof(ASTNode));
-    node->type = AST_NODE_LITERAL;
-    node->inferred_type = VALUE_NONE;
-    node->literal = value;
-    return node;
 }
 
 static ASTNode* parse_expression();
