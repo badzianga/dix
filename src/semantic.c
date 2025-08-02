@@ -7,11 +7,19 @@
 
 typedef struct Analyzer {
     bool had_error;
+    bool panic_mode;
 } Analyzer;
 
 static Analyzer analyzer = { 0 };
 
-void analyze_ast(ASTNode* root) {
+static void error(ASTNode* node, const char* message) {
+    if (analyzer.panic_mode) return;
+    analyzer.had_error = true;
+    analyzer.panic_mode = true;
+    fprintf(stderr, "[line %d] error: %s\n", node->line, message);
+}
+
+static void analyze_ast(ASTNode* root) {
     switch (root->type) {
         case AST_NODE_BINARY: {
             ASTNode* left = root->binary.left;
@@ -37,8 +45,7 @@ void analyze_ast(ASTNode* root) {
                         root->inferred_type = VALUE_FLOAT;
                     }
                     else {
-                        fprintf(stderr, "invalid operands for binary operation\n");
-                        analyzer.had_error = true;
+                        error(root, "incompatible types for binary operation");
                     }
                 default: break;
             }
@@ -50,8 +57,7 @@ void analyze_ast(ASTNode* root) {
             switch (root->unary.op) {
                 case TOKEN_BANG: {
                     if (right->inferred_type != VALUE_BOOL) {
-                        fprintf(stderr, "invalid type for '!' operator\n");
-                        analyzer.had_error = true;
+                        error(root, "incompatible type for '!' operator");
                     }
                     root->inferred_type = VALUE_BOOL;
                 } break;
@@ -61,8 +67,7 @@ void analyze_ast(ASTNode* root) {
                         root->inferred_type = type;
                     }
                     else {
-                        fprintf(stderr, "invalid type for '-' operator\n");
-                        analyzer.had_error = true;
+                        error(root, "incompatible type for '-' operator");
                     }
                 } break;
                 default: break;
@@ -75,10 +80,7 @@ void analyze_ast(ASTNode* root) {
             analyze(root->cast.expression);
             root->inferred_type = root->cast.target_type;
         } break;
-        default: {
-            fprintf(stderr, "unknown node type: %d\n", root->type);
-            analyzer.had_error = true;
-        } break;
+        default: break;
     }
 }
 
