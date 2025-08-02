@@ -29,11 +29,11 @@ void analyze_ast(ASTNode* root) {
                     else if (left->inferred_type == VALUE_FLOAT && right->inferred_type == VALUE_FLOAT)
                         root->inferred_type = VALUE_FLOAT;
                     else if (left->inferred_type == VALUE_INT && right->inferred_type == VALUE_FLOAT) {
-                        root->binary.left = make_node_cast(VALUE_FLOAT, left);
+                        root->binary.left = make_node_cast(left->line, VALUE_FLOAT, left);
                         root->inferred_type = VALUE_FLOAT;
                     }
                     else if (left->inferred_type == VALUE_FLOAT && right->inferred_type == VALUE_INT) {
-                        root->binary.right = make_node_cast(VALUE_FLOAT, right);
+                        root->binary.right = make_node_cast(right->line, VALUE_FLOAT, right);
                         root->inferred_type = VALUE_FLOAT;
                     }
                     else {

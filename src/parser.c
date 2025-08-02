@@ -81,9 +81,10 @@ static ASTNode* parse_expression() {
 static ASTNode* parse_term() {
     ASTNode* left = parse_factor();
     while(match(2, TOKEN_PLUS, TOKEN_MINUS)) {
+        int line = previous_token()->line;
         TokenType op = previous_token()->type;
         ASTNode* right = parse_factor();
-        left = make_node_binary(left, op, right);
+        left = make_node_binary(line, left, op, right);
     }
     return left;
 }
@@ -91,24 +92,27 @@ static ASTNode* parse_term() {
 static ASTNode* parse_factor() {
     ASTNode* left = parse_unary();
     while (match(2, TOKEN_ASTERISK, TOKEN_SLASH)) {
+        int line = previous_token()->line;
         TokenType op = previous_token()->type;
         ASTNode* right = parse_unary();
-        left = make_node_binary(left, op, right);
+        left = make_node_binary(line, left, op, right);
     }
     return left;
 }
 
 static ASTNode* parse_unary() {
     if (match(2, TOKEN_MINUS, TOKEN_BANG)) {
+        int line = previous_token()->line;
         TokenType op = previous_token()->type;
         ASTNode* right = parse_cast();
-        return make_node_unary(op, right);
+        return make_node_unary(line, op, right);
     }
     return parse_cast();
 }
 
 static ASTNode* parse_cast() {
     if (parser.current->type == TOKEN_LEFT_PAREN && next_token()->type) {
+        int line = parser.current->line;
         parser.current += 2;
         TokenType type = previous_token()->type;
         ValueType value_type = VALUE_NONE;
@@ -120,7 +124,7 @@ static ASTNode* parse_cast() {
         }
         consume_expected(TOKEN_RIGHT_PAREN, "expected closing parenthesis after cast");
         ASTNode* expression = parse_cast();
-        return make_node_cast(value_type, expression);
+        return make_node_cast(line, value_type, expression);
     }
     return parse_primary();
 }
@@ -128,17 +132,17 @@ static ASTNode* parse_cast() {
 static ASTNode* parse_primary() {
     if (match(1, TOKEN_INT_LITERAL)) {
         int32_t value = strtol(previous_token()->start, NULL, 10);
-        return make_node_literal(INT_VALUE(value));
+        return make_node_literal(previous_token()->line, INT_VALUE(value));
     }
     if (match(1, TOKEN_FLOAT_LITERAL)) {
         float value = strtof(previous_token()->start, NULL);
-        return make_node_literal(FLOAT_VALUE(value));
+        return make_node_literal(previous_token()->line, FLOAT_VALUE(value));
     }
     if (match(1, TOKEN_TRUE)) {
-        return make_node_literal(BOOL_VALUE(true));
+        return make_node_literal(previous_token()->line, BOOL_VALUE(true));
     }
     if (match(1, TOKEN_FALSE)) {
-        return make_node_literal(BOOL_VALUE(false));
+        return make_node_literal(previous_token()->line, BOOL_VALUE(false));
     }
     if (match(1, TOKEN_LEFT_PAREN)) {
         ASTNode* inside = parse_expression();
