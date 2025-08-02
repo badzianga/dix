@@ -6,7 +6,6 @@
 
 typedef struct Compiler {
     Chunk* chunk;
-    bool had_error;
 } Compiler;
 
 static Compiler compiler = { 0 };
@@ -162,11 +161,10 @@ void traverse_ast(ASTNode* node) {
 
 bool compile(ASTNode* ast, Chunk* chunk) {
     compiler.chunk = chunk;
-    compiler.had_error = false;
 
     traverse_ast(ast);
 
     emit_bytes(OP_PRINT, OP_RETURN);
 
-    return !compiler.had_error;
+    return true;
 }
